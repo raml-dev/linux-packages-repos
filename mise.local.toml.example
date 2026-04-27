@@ -1,0 +1,19 @@
+# Copyright 2026-present raml-dev
+# SPDX-License-Identifier: MIT
+
+[env]
+SRC_REPO_ROOT = "/absolute/path/to/src/project"
+PACKAGE_DISPATCH_JSON = "{{ env.SRC_REPO_ROOT }}/dist/linux-packages-repos-dispatch.json"
+
+REPO_PUBLIC_BASE_URL="https://example.com"
+
+CLOUDFLARE_ACCOUNT_ID = "r2 account id"
+BUCKET_NAME = "bucket name"
+AWS_ACCESS_KEY_ID = "access key id"
+AWS_SECRET_ACCESS_KEY = "secret access key"
+APT_SIGNING_KEY_ASC_FILE = "/absolute/path/to/apt-signing-private.asc"
+APT_SIGNING_KEY_PASSPHRASE = "passphrase"
+RPM_SIGNING_KEY_ASC_FILE = "/absolute/path/to/rpm-signing-private.asc"
+RPM_SIGNING_KEY_PASSPHRASE = "passphrase"
+ARCH_SIGNING_KEY_ASC_FILE = "/absolute/path/to/arch-signing-private.asc"
+ARCH_SIGNING_KEY_PASSPHRASE = "passphrase"

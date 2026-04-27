@@ -1,0 +1,6 @@
+# Copyright 2026-present raml-dev
+# SPDX-License-Identifier: MIT
+
+mise.local.toml
+keys/
+**/*/__pycache__

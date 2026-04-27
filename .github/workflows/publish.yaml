@@ -1,0 +1,134 @@
+# Copyright 2026-present raml-dev
+# SPDX-License-Identifier: MIT
+
+name: Linux Package Release
+
+on:
+  repository_dispatch:
+    types:
+      - linux-package-release
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_NAME: ${{ github.event.client_payload.package.name }}
+      PACKAGE_SOURCE_REPOSITORY: ${{ github.event.client_payload.package.source_repository }}
+      PACKAGE_RELEASE_VERSION: ${{ github.event.client_payload.release.version }}
+      PACKAGE_RELEASE_API_URL: ${{ github.event.client_payload.release.api_url }}
+      PACKAGE_DISPATCH_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+      SOURCE_GITHUB_TOKEN: ${{ github.token }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+        with:
+          cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
+          version: "2026.3.10"
+      - name: Install Linux repository publishing dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq install rpm libarchive-tools zstd
+      - name: Ingest stable package release and prepare publish context
+        run: mise run repo:linux:prepare
+      - name: Stage prepared Linux release inputs
+        run: |
+          rm -rf .tmp/linux-release-prepare
+          mkdir -p .tmp/linux-release-prepare/work
+          cp -R "${RUNNER_TEMP}/linux-packages-repos-work" .tmp/linux-release-prepare/work/linux-packages-repos-work
+      - name: Upload prepared Linux release inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release-prepare
+          path: .tmp/linux-release-prepare
+          if-no-files-found: error
+
+  publish-apt:
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      REPO_WORK_DIR: ${{ github.workspace
+        }}/.tmp/linux-release-prepare/work/linux-packages-repos-work
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+      APT_SIGNING_KEY_ASC: ${{ secrets.APT_SIGNING_KEY_ASC }}
+      APT_SIGNING_KEY_PASSPHRASE: ${{ secrets.APT_SIGNING_KEY_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+        with:
+          cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
+          version: "2026.3.10"
+      - name: Download prepared Linux release inputs
+        uses: actions/download-artifact@v5
+        with:
+          name: linux-release-prepare
+          path: .tmp/linux-release-prepare
+      - name: Publish APT metadata
+        run: mise run repo:linux:publish:apt
+
+  publish-rpm:
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      REPO_WORK_DIR: ${{ github.workspace
+        }}/.tmp/linux-release-prepare/work/linux-packages-repos-work
+      REPO_PUBLIC_BASE_URL: ${{ vars.REPO_PUBLIC_BASE_URL }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+      RPM_SIGNING_KEY_ASC: ${{ secrets.RPM_SIGNING_KEY_ASC }}
+      RPM_SIGNING_KEY_PASSPHRASE: ${{ secrets.RPM_SIGNING_KEY_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+        with:
+          cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
+          version: "2026.3.10"
+      - name: Install RPM publishing dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq install rpm createrepo-c python3-createrepo-c
+      - name: Download prepared Linux release inputs
+        uses: actions/download-artifact@v5
+        with:
+          name: linux-release-prepare
+          path: .tmp/linux-release-prepare
+      - name: Publish RPM metadata
+        run: mise run repo:linux:publish:rpm
+
+  publish-arch:
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      REPO_WORK_DIR: ${{ github.workspace
+        }}/.tmp/linux-release-prepare/work/linux-packages-repos-work
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+      ARCH_SIGNING_KEY_ASC: ${{ secrets.ARCH_SIGNING_KEY_ASC }}
+      ARCH_SIGNING_KEY_PASSPHRASE: ${{ secrets.ARCH_SIGNING_KEY_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+        with:
+          cache_key: "mise-{{platform}}-{{version}}-{{file_hash}}"
+          version: "2026.3.10"
+      - name: Install Arch publishing dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq install pacman-package-manager libarchive-tools zstd
+      - name: Download prepared Linux release inputs
+        uses: actions/download-artifact@v5
+        with:
+          name: linux-release-prepare
+          path: .tmp/linux-release-prepare
+      - name: Publish Arch metadata
+        run: mise run repo:linux:publish:arch

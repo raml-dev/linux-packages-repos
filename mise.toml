@@ -1,0 +1,40 @@
+# Copyright 2026-present raml-dev
+# SPDX-License-Identifier: MIT
+
+[tools]
+jq = "1.8.1"
+aws = { version = "2.34.36", symlink_bins = "true" }
+
+[tasks."repo:linux:prepare"]
+description = "Ingest a stable package release, validate assets, and prepare publish context"
+run = "bash {{ config_root }}/scripts/prepare-release.sh"
+
+[tasks."repo:linux:publish:apt"]
+description = "Regenerate and publish APT metadata from prepared Linux release inputs"
+run = "bash {{ config_root }}/scripts/publish-apt.sh"
+
+[tasks."repo:linux:publish:rpm"]
+description = "Regenerate and publish RPM metadata from prepared Linux release inputs"
+run = "bash {{ config_root }}/scripts/publish-rpm.sh"
+
+[tasks."repo:linux:publish:arch"]
+description = "Regenerate and publish Arch metadata from prepared Linux release inputs"
+run = "bash {{ config_root }}/scripts/publish-arch.sh"
+
+[tasks."local-publish-test"]
+description = "Render and publish the Linux package repositories from a locally served release fixture"
+run = """
+export PACKAGE_DISPATCH_PAYLOAD="$(cat "$PACKAGE_DISPATCH_JSON")"
+export PACKAGE_NAME="$(jq -r '.client_payload.package.name' "$PACKAGE_DISPATCH_JSON")"
+export PACKAGE_SOURCE_REPOSITORY="$(jq -r '.client_payload.package.source_repository' "$PACKAGE_DISPATCH_JSON")"
+export PACKAGE_RELEASE_VERSION="$(jq -r '.client_payload.release.version' "$PACKAGE_DISPATCH_JSON")"
+export PACKAGE_RELEASE_API_URL="$(jq -r '.client_payload.release.api_url' "$PACKAGE_DISPATCH_JSON")"
+export APT_SIGNING_KEY_ASC="$(cat "$APT_SIGNING_KEY_ASC_FILE")"
+export APT_SIGNING_KEY_PASSPHRASE="${APT_SIGNING_KEY_PASSPHRASE:-passphrase}"
+export RPM_SIGNING_KEY_ASC="$(cat "$RPM_SIGNING_KEY_ASC_FILE")"
+export RPM_SIGNING_KEY_PASSPHRASE="${RPM_SIGNING_KEY_PASSPHRASE:-passphrase}"
+export ARCH_SIGNING_KEY_ASC="$(cat "$ARCH_SIGNING_KEY_ASC_FILE")"
+export ARCH_SIGNING_KEY_PASSPHRASE="${ARCH_SIGNING_KEY_PASSPHRASE:-passphrase}"
+mise run repo:linux:prepare
+mise run repo:linux:publish:apt ::: repo:linux:publish:rpm ::: repo:linux:publish:arch
+"""
