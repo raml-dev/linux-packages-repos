@@ -24,10 +24,10 @@ Add the repo:
 ```bash
 sudo install -d -m0755 /etc/apt/keyrings
 
-curl -fsSL https://linux-packages.ramldev-info.workers.dev/apt/raml-dev-archive-keyring.asc \
+curl -fsSL https://linux-packages.raml.workers.dev/apt/raml-dev-archive-keyring.asc \
   | sudo gpg --dearmor -o /etc/apt/keyrings/raml-dev-archive-keyring.gpg
 
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/raml-dev-archive-keyring.gpg] https://linux-packages.ramldev-info.workers.dev/apt stable main" \
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/raml-dev-archive-keyring.gpg] https://linux-packages.raml.workers.dev/apt stable main" \
   | sudo tee /etc/apt/sources.list.d/raml-dev.list
 
 sudo apt update
@@ -46,7 +46,7 @@ sudo apt update
 Add the repo:
 
 ```bash
-sudo curl -fsSL https://linux-packages.ramldev-info.workers.dev/rpm/raml-dev.repo \
+sudo curl -fsSL https://linux-packages.raml.workers.dev/rpm/raml-dev.repo \
   -o /etc/yum.repos.d/raml-dev.repo
 ```
 
@@ -61,7 +61,7 @@ sudo rm -f /etc/yum.repos.d/raml-dev.repo
 Add the repo:
 
 ```bash
-curl -fsSL https://https://linux-packages.ramldev-info.workers.dev//arch/raml-dev-pacman-key.asc \
+curl -fsSL https://linux-packages.raml.workers.dev/arch/raml-dev-pacman-key.asc \
   -o /tmp/raml-dev-pacman-key.asc
 
 sudo pacman-key --add /tmp/raml-dev-pacman-key.asc
@@ -70,7 +70,7 @@ sudo pacman-key --lsign-key ramldev.info@gmail.com
 sudo tee -a /etc/pacman.conf >/dev/null <<'EOF'
 [raml-dev]
 SigLevel = Required
-Server = https://https://linux-packages.ramldev-info.workers.dev//arch/$arch
+Server = https://linux-packages.raml.workers.dev/arch/$arch
 EOF
 
 sudo pacman -Sy
