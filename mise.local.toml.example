@@ -17,3 +17,5 @@ RPM_SIGNING_KEY_ASC_FILE = "/absolute/path/to/rpm-signing-private.asc"
 RPM_SIGNING_KEY_PASSPHRASE = "passphrase"
 ARCH_SIGNING_KEY_ASC_FILE = "/absolute/path/to/arch-signing-private.asc"
 ARCH_SIGNING_KEY_PASSPHRASE = "passphrase"
+
+CLOUDFLARE_PAGES_FUNCTION_API_TOKEN=cfat_XXXXXXXXXXXXXXXXXX

@@ -1,0 +1,14 @@
+# Copyright 2026-present raml-dev
+# SPDX-License-Identifier: MIT
+
+name = "linux-packages"
+main = "index.js"
+compatibility_date = "2026-04-28"
+preview_urls = false
+
+[observability]
+enabled = true
+
+[[r2_buckets]]
+binding = "REPO_BUCKET"
+bucket_name = "raml-dev-repos"

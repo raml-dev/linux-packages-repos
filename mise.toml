@@ -4,6 +4,8 @@
 [tools]
 jq = "1.8.1"
 aws = { version = "2.34.36", symlink_bins = "true" }
+node = "24.15.0"
+"npm:wrangler" = "4.86.0"
 
 [tasks."repo:linux:prepare"]
 description = "Ingest a stable package release, validate assets, and prepare publish context"
@@ -20,6 +22,14 @@ run = "bash {{ config_root }}/scripts/publish-rpm.sh"
 [tasks."repo:linux:publish:arch"]
 description = "Regenerate and publish Arch metadata from prepared Linux release inputs"
 run = "bash {{ config_root }}/scripts/publish-arch.sh"
+
+[tasks."repo:frontend:deploy"]
+description = "Deploy the frontend for the linux repositories to a Cloudflare Pages function"
+dir = "{{ config_root }}/cf-worker-linux-packages"
+run = """
+#!/usr/bin/env bash
+wrangler deploy
+"""
 
 [tasks."local-publish-test"]
 description = "Render and publish the Linux package repositories from a locally served release fixture"
