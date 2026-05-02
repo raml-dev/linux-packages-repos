@@ -50,8 +50,7 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     env:
-      REPO_WORK_DIR: ${{ github.workspace
-        }}/.tmp/linux-release-prepare/work/linux-packages-repos-work
+      REPO_WORK_DIR: ${{ github.workspace }}/.tmp/linux-release-prepare/work/linux-packages-repos-work
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -76,9 +75,7 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     env:
-      REPO_WORK_DIR: ${{ github.workspace
-        }}/.tmp/linux-release-prepare/work/linux-packages-repos-work
-      REPO_PUBLIC_BASE_URL: ${{ vars.REPO_PUBLIC_BASE_URL }}
+      REPO_WORK_DIR: ${{ github.workspace }}/.tmp/linux-release-prepare/work/linux-packages-repos-work
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -107,8 +104,7 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     env:
-      REPO_WORK_DIR: ${{ github.workspace
-        }}/.tmp/linux-release-prepare/work/linux-packages-repos-work
+      REPO_WORK_DIR: ${{ github.workspace }}/.tmp/linux-release-prepare/work/linux-packages-repos-work
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -28,15 +28,6 @@ fetch_release_json() {
   fi
 }
 
-release_asset_api_url() {
-  local asset_name="$1"
-  jq -r --arg asset_name "${asset_name}" '
-    .assets[]
-    | select(.name == $asset_name)
-    | .url
-  ' "${CURRENT_RELEASE_INFO_PATH}"
-}
-
 release_asset_browser_url() {
   local asset_name="$1"
   jq -r --arg asset_name "${asset_name}" '
@@ -49,18 +40,9 @@ release_asset_browser_url() {
 download_release_asset() {
   local asset_name="$1"
   local output_path="$2"
-  local asset_api_url browser_url
-  local -a curl_args
+  local browser_url
 
-  asset_api_url="$(release_asset_api_url "${asset_name}")"
   browser_url="$(release_asset_browser_url "${asset_name}")"
-
-  if [[ -n "${asset_api_url}" && "${asset_api_url}" != "null" ]]; then
-    mapfile -t curl_args < <(release_api_headers)
-    if curl -fsSL "${curl_args[@]}" -H "Accept: application/octet-stream" "${asset_api_url}" > "${output_path}"; then
-      return
-    fi
-  fi
 
   if [[ -z "${browser_url}" || "${browser_url}" == "null" ]]; then
     die "release asset not found: ${asset_name}"
