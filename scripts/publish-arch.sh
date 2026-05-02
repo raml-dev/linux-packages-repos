@@ -31,6 +31,10 @@ arch_require_tools() {
   command -v repo-add >/dev/null 2>&1 || die "repo-add is required for pacman publication"
 }
 
+arch_repo_add_supports_include_sigs() {
+  repo-add --help 2>&1 | grep -Fq -- '--include-sigs'
+}
+
 arch_import_signing_key() {
   local fingerprint
 
@@ -147,6 +151,7 @@ sign_arch_repo_metadata_for_arch() {
 generate_arch_repo_for_arch() {
   local arch="$1"
   local repo_dir db_tar_path files_tar_path db_source_path files_source_path
+  local -a repo_add_args
 
   repo_dir="$(arch_repo_dir "${arch}")"
   db_tar_path="${repo_dir}/${ARCH_REPO_ID}.db.tar.gz"
@@ -160,7 +165,12 @@ generate_arch_repo_for_arch() {
     "${db_tar_path}" \
     "${files_tar_path}"
 
-  repo-add --include-sigs "${db_tar_path}" "${repo_dir}"/*.pkg.tar.zst >/dev/null
+  repo_add_args=()
+  if arch_repo_add_supports_include_sigs; then
+    repo_add_args+=(--include-sigs)
+  fi
+
+  repo-add "${repo_add_args[@]}" "${db_tar_path}" "${repo_dir}"/*.pkg.tar.zst >/dev/null
 
   db_source_path="${db_tar_path}"
   files_source_path="${files_tar_path}"
