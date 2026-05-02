@@ -65,7 +65,7 @@ curl -fsSL https://linux-packages.raml.workers.dev/arch/raml-dev-pacman-key.asc 
   -o /tmp/raml-dev-pacman-key.asc
 
 sudo pacman-key --add /tmp/raml-dev-pacman-key.asc
-sudo pacman-key --lsign-key ramldev.info@gmail.com
+sudo pacman-key --lsign-key 'raml-dev Arch Repository'
 
 sudo tee -a /etc/pacman.conf >/dev/null <<'EOF'
 [raml-dev]
