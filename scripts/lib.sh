@@ -81,8 +81,13 @@ publish_context_asset_field() {
 current_release_asset_download_path() {
   local format="$1"
   local arch="$2"
+  local field_name="filename"
 
-  release_download_path "$(publish_context_asset_field "${format}" "${arch}" filename)"
+  if [[ "${format}" == "apt" ]]; then
+    field_name="source_filename"
+  fi
+
+  release_download_path "$(publish_context_asset_field "${format}" "${arch}" "${field_name}")"
 }
 
 dispatch_payload_query() {
@@ -161,8 +166,30 @@ release_sha256sums_asset_name() {
 }
 
 apt_pool_relative_path() {
-  local filename="$1"
-  printf '%s\n' "pool/main/$(package_initial)/${PACKAGE_NAME}/${filename}"
+  local package_name="$1"
+  local filename="$2"
+  printf '%s\n' "pool/main/${package_name:0:1}/${package_name}/${filename}"
+}
+
+apt_canonical_repo_filename() {
+  local deb_path="$1"
+  local package_name version architecture
+
+  package_name="$(dpkg_field "${deb_path}" Package)"
+  version="$(dpkg_field "${deb_path}" Version)"
+  architecture="$(dpkg_field "${deb_path}" Architecture)"
+
+  printf '%s\n' "${package_name}_${version}_${architecture}.deb"
+}
+
+apt_canonical_pool_relative_path() {
+  local deb_path="$1"
+  local package_name repo_filename
+
+  package_name="$(dpkg_field "${deb_path}" Package)"
+  repo_filename="$(apt_canonical_repo_filename "${deb_path}")"
+
+  apt_pool_relative_path "${package_name}" "${repo_filename}"
 }
 
 rpm_repo_relative_path() {

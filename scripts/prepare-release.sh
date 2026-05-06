@@ -118,6 +118,7 @@ validate_deb_metadata() {
     architecture="$(dpkg_field "${deb_path}" Architecture)"
     [[ "${package_name_value}" == "${PACKAGE_NAME}" ]] || die "unexpected package name in ${asset_name}: ${package_name_value}"
     case "${version}" in
+      "${PACKAGE_RELEASE_VERSION}" ) ;;
       "${EXPECTED_DEB_VERSION_PREFIX}"*) ;;
       *) die "unexpected package version in ${asset_name}: ${version}" ;;
     esac
@@ -166,12 +167,27 @@ validate_arch_metadata() {
 }
 
 write_publish_context() {
+  local apt_amd64_source_filename apt_amd64_deb_path apt_amd64_repo_filename apt_amd64_pool_path
+  local apt_arm64_source_filename apt_arm64_deb_path apt_arm64_repo_filename apt_arm64_pool_path
+
+  apt_amd64_source_filename="$(release_deb_asset_name amd64)"
+  apt_amd64_deb_path="$(release_download_path "${apt_amd64_source_filename}")"
+  apt_amd64_repo_filename="$(apt_canonical_repo_filename "${apt_amd64_deb_path}")"
+  apt_amd64_pool_path="$(apt_canonical_pool_relative_path "${apt_amd64_deb_path}")"
+
+  apt_arm64_source_filename="$(release_deb_asset_name arm64)"
+  apt_arm64_deb_path="$(release_download_path "${apt_arm64_source_filename}")"
+  apt_arm64_repo_filename="$(apt_canonical_repo_filename "${apt_arm64_deb_path}")"
+  apt_arm64_pool_path="$(apt_canonical_pool_relative_path "${apt_arm64_deb_path}")"
+
   jq -n \
     --arg sha256sums_filename "${SHA256_ASSET_NAME}" \
-    --arg apt_amd64_filename "$(release_deb_asset_name amd64)" \
-    --arg apt_amd64_pool_path "$(apt_pool_relative_path "$(release_deb_asset_name amd64)")" \
-    --arg apt_arm64_filename "$(release_deb_asset_name arm64)" \
-    --arg apt_arm64_pool_path "$(apt_pool_relative_path "$(release_deb_asset_name arm64)")" \
+    --arg apt_amd64_source_filename "${apt_amd64_source_filename}" \
+    --arg apt_amd64_repo_filename "${apt_amd64_repo_filename}" \
+    --arg apt_amd64_pool_path "${apt_amd64_pool_path}" \
+    --arg apt_arm64_source_filename "${apt_arm64_source_filename}" \
+    --arg apt_arm64_repo_filename "${apt_arm64_repo_filename}" \
+    --arg apt_arm64_pool_path "${apt_arm64_pool_path}" \
     --arg rpm_x86_64_filename "$(release_rpm_asset_name x86_64)" \
     --arg rpm_x86_64_repo_path "$(rpm_repo_relative_path x86_64 "$(release_rpm_asset_name x86_64)")" \
     --arg rpm_aarch64_filename "$(release_rpm_asset_name aarch64)" \
@@ -188,11 +204,13 @@ write_publish_context() {
         },
         apt: {
           amd64: {
-            filename: $apt_amd64_filename,
+            source_filename: $apt_amd64_source_filename,
+            repo_filename: $apt_amd64_repo_filename,
             pool_path: $apt_amd64_pool_path
           },
           arm64: {
-            filename: $apt_arm64_filename,
+            source_filename: $apt_arm64_source_filename,
+            repo_filename: $apt_arm64_repo_filename,
             pool_path: $apt_arm64_pool_path
           }
         },

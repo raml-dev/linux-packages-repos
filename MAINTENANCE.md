@@ -14,6 +14,10 @@ The `publish` workflow:
 3. Signs the metadata
 4. Publishes the repositories to Cloudflare R2
 
+> [!NOTE]
+>
+> Versions already published in the packages bucket are treated as immutable and cannot be replaced.
+
 ## Configuring a new package
 
 This repository expects to receive a `repository_dispatch` event from a GitHub repository that contains the package to be published.
@@ -85,6 +89,10 @@ To publish a package, you need to:
     - APT: `<package_name>_<version>_<arch>.deb`
     - RPM: `<package_name>-<version>-1.<arch>.rpm`
     - Arch: `<package_name>-<version>-1-<arch>.pkg.tar.zst`
+
+    For APT specifically:
+    - `assets.apt.<arch>.filename` is only the GitHub release asset name used to download the `.deb`
+    - the published repository path is derived from the `.deb` control metadata as `<package>_<debian_version>_<arch>.deb`
 
 You can see an example of this in the [raml-dev/solo](https://github.com/raml-dev/solo) repository.
 

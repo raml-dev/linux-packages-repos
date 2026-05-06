@@ -70,34 +70,32 @@ apt_download_existing_packages() {
 apt_write_current_package_stanza() {
   local arch="$1"
   local output_path="$2"
-  local package_path relative_path package_arch
+  local package_path relative_path
 
   package_path="$(current_release_asset_download_path apt "${arch}")"
   relative_path="$(apt_current_pool_path "${arch}")"
-  package_arch="$(dpkg_field "${package_path}" Architecture)"
 
-  cat > "${output_path}" <<EOF
-Package: $(dpkg_field "${package_path}" Package)
-Version: $(dpkg_field "${package_path}" Version)
-Architecture: ${package_arch}
-Maintainer: $(dpkg_field "${package_path}" Maintainer)
-Depends: $(dpkg_field "${package_path}" Depends)
+  dpkg-deb -f "${package_path}" > "${output_path}"
+  cat >> "${output_path}" <<EOF
 Filename: ${relative_path}
 Size: $(stat -c '%s' "${package_path}")
 MD5sum: $(md5sum "${package_path}" | awk '{print $1}')
 SHA1: $(sha1sum "${package_path}" | awk '{print $1}')
 SHA256: $(sha256sum "${package_path}" | awk '{print $1}')
-Description: $(dpkg_field "${package_path}" Description)
 EOF
 }
 
 apt_filter_existing_packages() {
   local input_path="$1"
   local output_path="$2"
-  local target_filename="$3"
+  local target_package="$3"
+  local target_version="$4"
+  local target_architecture="$5"
 
   awk \
-    -v target_filename="${target_filename}" \
+    -v target_package="${target_package}" \
+    -v target_version="${target_version}" \
+    -v target_architecture="${target_architecture}" \
     '
     BEGIN {
       RS = ""
@@ -106,12 +104,17 @@ apt_filter_existing_packages() {
     }
     {
       keep = 1
+      package_name = ""
+      version = ""
+      architecture = ""
       n = split($0, lines, "\n")
       for (i = 1; i <= n; i++) {
-        if (lines[i] == "Filename: " target_filename) {
-          keep = 0
-          break
-        }
+        if (lines[i] ~ /^Package: /) package_name = substr(lines[i], 10)
+        if (lines[i] ~ /^Version: /) version = substr(lines[i], 10)
+        if (lines[i] ~ /^Architecture: /) architecture = substr(lines[i], 15)
+      }
+      if (package_name == target_package && version == target_version && architecture == target_architecture) {
+        keep = 0
       }
       if (keep) {
         if (emitted) {
@@ -131,15 +134,23 @@ apt_filter_existing_packages() {
 
 apt_build_packages_for_arch() {
   local arch="$1"
-  local packages_path filtered_path stanza_path current_pool_path
+  local packages_path filtered_path stanza_path package_path current_package current_version current_architecture
 
   packages_path="$(apt_packages_path "${arch}")"
   filtered_path="${packages_path}.filtered"
   stanza_path="${packages_path}.stanza"
-  current_pool_path="$(apt_current_pool_path "${arch}")"
+  package_path="$(current_release_asset_download_path apt "${arch}")"
+  current_package="$(dpkg_field "${package_path}" Package)"
+  current_version="$(dpkg_field "${package_path}" Version)"
+  current_architecture="$(dpkg_field "${package_path}" Architecture)"
 
   apt_download_existing_packages "${arch}"
-  apt_filter_existing_packages "${packages_path}" "${filtered_path}" "${current_pool_path}"
+  apt_filter_existing_packages \
+    "${packages_path}" \
+    "${filtered_path}" \
+    "${current_package}" \
+    "${current_version}" \
+    "${current_architecture}"
   apt_write_current_package_stanza "${arch}" "${stanza_path}"
 
   : > "${packages_path}"
